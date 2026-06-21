@@ -222,8 +222,6 @@ def index():
         confirmed_matches = list(set(allowed_by_cpu) & set(allowed_by_gpu) & set(allowed_by_ram))
         confirmed_matches.sort()
 
-        print(confirmed_matches)
-
         return render_template('index.html',
                                confirmed_matches=confirmed_matches,
                                cpu=cpu, gpu=gpu, ram=ram,
