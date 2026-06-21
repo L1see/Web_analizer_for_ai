@@ -1,20 +1,390 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор</title>
+    <title>AI Model Finder - Подбор нейросетей под ваше железо</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: #b8d4e3;
+            font-size: 1.2em;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            padding: 35px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .card-right {
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .card h2 {
+            color: #203a43;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .calc-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .input-group input {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #2c5364;
+            box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.15);
+        }
+
+        .input-group input::placeholder {
+            color: #999;
+        }
+
+        button {
+            background: linear-gradient(135deg, #203a43 0%, #2c5364 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(32, 58, 67, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .config-info {
+            background: #eaf2f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2c5364;
+        }
+
+        .config-info p {
+            color: #555;
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .config-info strong {
+            color: #203a43;
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .model-card {
+            background: linear-gradient(135deg, #eaf2f5 0%, #d4e3eb 100%);
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(32, 58, 67, 0.25);
+            border-color: #2c5364;
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: #203a43;
+            font-size: 1.05em;
+            margin-bottom: 8px;
+        }
+
+        .model-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #203a43 0%, #2c5364 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .results-count {
+            background: linear-gradient(135deg, #203a43 0%, #2c5364 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .models-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .models-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Калькулятор сложного процента</h2>
-        <form method="POST" class="calc-form">
-            <input name="cpu" placeholder="Ваш CPU" step="any" required>
-            <input name="gpu" placeholder="Ваш GPU" step="any" required>
-            <input name="ram" placeholder="Ваша RAM (гб)" type="number" step="any" required>
-            <button type="submit">Рассчитать</button>
-        </form>
+    <div class="header">
+        <h1>AI Model Finder</h1>
+        <p>Подберите идеальную нейросеть под ваше железо</p>
+    </div>
 
+    <div class="container">
+        <div class="card form-card">
+            <h2>⚙️ Конфигурация ПК</h2>
+
+            <form method="POST" class="calc-form">
+                <div class="input-group">
+                    <label for="cpu">Процессор (CPU)</label>
+                    <input
+                        name="cpu"
+                        id="cpu"
+                        placeholder="Например: i5-13600k или Ryzen 7 5800x"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="gpu">Видеокарта (GPU)</label>
+                    <input
+                        name="gpu"
+                        id="gpu"
+                        placeholder="Например: RTX 3060 или RX 6700 XT"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="ram">Оперативная память (RAM) в ГБ</label>
+                    <input
+                        name="ram"
+                        id="ram"
+                        placeholder="Например: 16"
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                    >
+                </div>
+
+                <button type="submit">Найти подходящие модели</button>
+            </form>
+        </div>
+
+        <div class="card card-right results-card">
+            {% if confirmed_matches is defined and confirmed_matches is not none %}
+                <h2>🤖 Подходящие модели</h2>
+
+                <div class="config-info">
+                    <p><strong>CPU:</strong> {{ cpu }}</p>
+                    <p><strong>GPU:</strong> {{ gpu }}</p>
+                    <p><strong>RAM:</strong> {{ ram }} ГБ</p>
+                </div>
+
+                {% if confirmed_matches|length > 0 %}
+                <div class="results-count">Найдено моделей: {{ confirmed_matches|length }}</div>
+
+                <div class="models-grid">
+                    {% for model in confirmed_matches %}
+                    <div class="model-card">
+                        <div class="model-name">{{ model }}</div>
+                        <span class="model-type">
+                            {% if 'llama' in model.lower() %}Текстовая модель
+                            {% elif 'qwen' in model.lower() %}Текстовая модель
+                            {% elif 'gemma' in model.lower() %}Текстовая модель
+                            {% elif 'mistral' in model.lower() %}Текстовая модель
+                            {% elif 'yi' in model.lower() %}Текстовая модель
+                            {% elif 'phi' in model.lower() %}Текстовая модель
+                            {% elif 'falcon' in model.lower() %}Текстовая модель
+                            {% elif 'starcoder' in model.lower() %}Код
+                            {% elif 'deepseek' in model.lower() %}Код
+                            {% elif 'whisper' in model.lower() %}Аудио
+                            {% elif 'stable diffusion' in model.lower() %}Изображения
+                            {% elif 'llava' in model.lower() %}Мультимодальная
+                            {% elif 'qwen2-vl' in model.lower() %}Мультимодальная
+                            {% elif 'mixtral' in model.lower() %}Текстовая модель
+                            {% elif 'command' in model.lower() %}Текстовая модель
+                            {% else %}Нейросеть
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-results">
+                    К сожалению, для вашей конфигурации не найдено подходящих моделей.
+                    Попробуйте указать другие компоненты ПК.
+                </div>
+                {% endif %}
+            {% else %}
+                <h2>🤖 Все доступные модели</h2>
+                <div class="results-count">Всего моделей: {{ all_models|length }}</div>
+
+                <div class="models-grid">
+                    {% for model in all_models %}
+                    <div class="model-card">
+                        <div class="model-name">{{ model }}</div>
+                        <span class="model-type">
+                            {% if 'llama' in model.lower() %}Текстовая модель
+                            {% elif 'qwen' in model.lower() %}Текстовая модель
+                            {% elif 'gemma' in model.lower() %}Текстовая модель
+                            {% elif 'mistral' in model.lower() %}Текстовая модель
+                            {% elif 'yi' in model.lower() %}Текстовая модель
+                            {% elif 'phi' in model.lower() %}Текстовая модель
+                            {% elif 'falcon' in model.lower() %}Текстовая модель
+                            {% elif 'starcoder' in model.lower() %}Код
+                            {% elif 'deepseek' in model.lower() %}Код
+                            {% elif 'whisper' in model.lower() %}Аудио
+                            {% elif 'stable diffusion' in model.lower() %}Изображения
+                            {% elif 'llava' in model.lower() %}Мультимодальная
+                            {% elif 'qwen2-vl' in model.lower() %}Мультимодальная
+                            {% elif 'mixtral' in model.lower() %}Текстовая модель
+                            {% elif 'command' in model.lower() %}Текстовая модель
+                            {% else %}Нейросеть
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="GoBasta header">
+        <p>Powered by GoBasta</p>
     </div>
 </body>
 </html>

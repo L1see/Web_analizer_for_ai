@@ -189,6 +189,17 @@ def ai_cpu_memory(cpu_cores):
             available_models.append(cpu_base[i][0])
     return available_models
 
+# список всех моделей для начального отображения
+all_models = sorted([
+    'llama 3.2 1b', 'gemma 2 2b', 'llama 3.2 3b', 'qwen 2.5 3b',
+    'llama 3.1 8b', 'qwen 2.5 7b', 'mistral 7b', 'gemma 2 9b',
+    'yi 1.5 9b', 'falcon 2 11b', 'phi-4 14b', 'qwen 2.5 14b',
+    'starcoder2 15b', 'deepseek coder v2 lite 16b', 'gemma 2 27b',
+    'qwen 2.5 32b', 'yi 1.5 34b', 'command r 35b', 'mixtral 8x7b',
+    'qwen2-vl 7b', 'llava v1.6 13b', 'whisper large v3',
+    'stable diffusion 3.5 medium', 'llama 3.1 70b', 'qwen 2.5 72b'
+])
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
@@ -209,10 +220,16 @@ def index():
         allowed_by_ram = ai_ram_memory(pc_config[2])
 
         confirmed_matches = list(set(allowed_by_cpu) & set(allowed_by_gpu) & set(allowed_by_ram))
+        confirmed_matches.sort()
 
         print(confirmed_matches)
 
-    return render_template('index.html') # команда на создание слова
+        return render_template('index.html',
+                               confirmed_matches=confirmed_matches,
+                               cpu=cpu, gpu=gpu, ram=ram,
+                               all_models=all_models)
+
+    return render_template('index.html', all_models=all_models) # команда на создание слова
 
 if __name__ == '__main__': # вывод кода
     app.run(debug=True) # команда на вывод ошибки
